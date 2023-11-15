@@ -74,8 +74,8 @@ if __name__ == "__main__":
     print("Start time: ", datetime.datetime.now())
 
     matching_result_write = open("2GRAM_result.txt", "w+")
-    dict_list = file_read("dict.txt")
-    term_list = file_read("misspell.txt")
+    dict_list = file_read("dictionary/dict.txt")
+    term_list = file_read("test/misspell.txt")
     # print(len(term_list), "x", len(dict_list))
 
     # ==================== SHORTEN OOV LIST ====================
