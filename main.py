@@ -4,6 +4,7 @@ import argparse
 import re
 import datetime
 import time
+import jellyfish
 
 from src import TwoGram
 from src import Ged
@@ -14,6 +15,7 @@ METHOD_SD2GRAM = "sd2gram"
 METHOD_SDGED = "sdged"
 
 DICTIONARY_DIR = "dictionary/dict.txt"
+DICTIONARY_SD_DIR = "dictionary/dict_soundex.txt"
 
 SUPPORTED_METHODS = [
     METHOD_2GRAM,
@@ -35,7 +37,24 @@ def read_lines(file_name):
     return lines
 
 
-def implement(input_dir, output_dir, measure, execution_length = 10):
+def get_soundex_match(term, dict_list, dict_list_sd):
+    def is_oov(term, dictionary_list):
+        return term not in dictionary_list
+    
+    # ==================== SOUNDEX MATCHING ====================
+    matching_list = []
+    term_sd = jellyfish.soundex(term)
+    if not is_oov(term, dict_list):
+        matching_list.append(term)
+    else:
+        for j in range(len(dict_list)):
+            if term_sd == dict_list_sd[j]:
+                matching_list.append(dict_list[j])
+    
+    return matching_list
+
+
+def implement(input_dir, output_dir, measure, soundex_preprocess = False, execution_length = 10):
     """
     Open files and start to implement algorithm
     """
@@ -43,41 +62,21 @@ def implement(input_dir, output_dir, measure, execution_length = 10):
     dict_list = read_lines(DICTIONARY_DIR)
     term_list = read_lines(input_dir)
 
-    # ==================== MEASURE DISTANCE ====================
-
-    def measure_distance(term, dictionary_list, measure):
-        """
-        Measure distance of a term
-        """
-        
-        def is_oov(term, dictionary_list):
-            return term not in dictionary_list
-        
-        matching_distance = measure.get_default_distance
-        matching_string = []
-
-        if not is_oov(term, dictionary_list):
-            matching_distance = measure.get_iv_distance(term)
-            matching_string = [term]
-        else:
-            for dict in dictionary_list:
-                distance = measure.get_oov_distance(term, dict)
-
-                if (measure.is_greatest_distance and (distance > matching_distance)) or (measure.is_least_distance and (distance < matching_distance)):
-                    matching_distance = distance
-                    matching_string = [str(dict)]
-                elif distance == matching_distance:
-                    matching_string.append(str(dict))
-        
-        return [matching_distance, matching_string]
+    if (soundex_preprocess):
+        dict_list_sd = read_lines(DICTIONARY_SD_DIR)
 
     for i in range(len(term_list)):
-        [matching_distance, matching_string] = measure_distance(term_list[i], dict_list, measure)
+        
+        if (soundex_preprocess):
+            # If preprocess with soundex, create a new filtered list as dictionary
+            dict_list_sd_filtered = get_soundex_match(term_list[i], dict_list, dict_list_sd)
+            [matching_distance, matching_string] = measure.measure_distance(term_list[i], dict_list_sd_filtered)
+        else:
+            [matching_distance, matching_string] = measure.measure_distance(term_list[i], dict_list)
 
         print(i, ". The term: ", term_list[i])
-        print("Global edit distance: ", matching_distance)
-        print("Matching string: ", matching_string)
-        print()
+        print("Distance: ", matching_distance)
+        print("Matching string: ", matching_string, "\n")
 
         output_fd.write("%s\n" % ','.join(matching_string))
 
@@ -104,27 +103,34 @@ if __name__ == "__main__":
     if method not in SUPPORTED_METHODS:
         raise AssertionError("Unsupported method")
 
-   
     start_time = time.time()
     print("Start time: ", datetime.datetime.now())
-    
-    if method == METHOD_2GRAM:
-        # implement 2GRAM method
-        print ("implement TWO GRAM method")
-        measure = TwoGram()
-    elif method == METHOD_GED:
-        # implement GED method
-        print ("implement GED method")
-        measure = Ged()
-    elif method == METHOD_SD2GRAM:
-        # implement Soundex + 2GRAM method
-        print ("implement Soundex + 2GRAM method")
-    elif method == METHOD_SDGED:
-        # implement Soundex + GED method
-        print ("implement Soundex + GED method")
-        
-    implement(input_dir, output_dir, measure, execution_length)
-        
+
+    if method in [METHOD_2GRAM, METHOD_GED]:
+        if method == METHOD_2GRAM:
+            # implement 2GRAM method
+            print ("implement TWO GRAM method")
+            measure = TwoGram()
+        elif method == METHOD_GED:
+            # implement GED method
+            print ("implement GED method")
+            measure = Ged()
+            
+        implement(input_dir, output_dir, measure, False, execution_length)
+
+    if method in [METHOD_SD2GRAM, METHOD_SDGED]:
+        if method == METHOD_SD2GRAM:
+            # implement Soundex + 2GRAM method
+            print ("implement Soundex + 2GRAM method")
+            measure = TwoGram()
+        elif method == METHOD_SDGED:
+            # implement Soundex + GED method
+            print ("implement Soundex + GED method")
+            measure = Ged()
+            
+        implement(input_dir, output_dir, measure, True, execution_length)
+
+
     end_time = time.time()
     print("End time: ", datetime.datetime.now())
     running_time = end_time - start_time
