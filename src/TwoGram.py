@@ -6,8 +6,12 @@
 # Author: QUANG TRUNG LE
 
 
-class TwoGram:
+from .Matching import Matching
+
+
+class TwoGram(Matching):
     def __init__(self):
+        Matching.__init__(self)
         self.default_distance = 100
         self.greatest_distance = False
         self.least_distance = True

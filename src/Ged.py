@@ -5,7 +5,9 @@
 # Project A: Lexical Normalization
 # Author: QUANG TRUNG LE
 
+
 import numpy
+from .Matching import Matching
 
 
 MATCHING = 1
@@ -13,8 +15,9 @@ DELETION = -1
 INSERTION = -1
 REPLACEMENT = -1
 
-class Ged:
+class Ged(Matching):
     def __init__(self):
+        Matching.__init__(self)
         self.default_distance = -100
         self.greatest_distance = True
         self.least_distance = False
@@ -46,13 +49,7 @@ class Ged:
             Get distance between 2 characters.
             Return MATCHING if equal, or else REPLACEMENT 
             """
-            return MATCHING if rhs == lhs else REPLACEMENT
-            # if rhs == lhs:
-            #     equals = MATCHING
-            # else:
-            #     equals = REPLACEMENT
-            # return equals
-    
+            return MATCHING if rhs == lhs else REPLACEMENT    
         
         [row, column] = numpy.shape(matrix)
         for i in range(1, row):
