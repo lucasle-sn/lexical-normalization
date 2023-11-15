@@ -6,11 +6,12 @@ import datetime
 import time
 
 from src import TwoGram
+from src import Ged
 
 METHOD_2GRAM = "2gram"
-METHOD_GED = "ged",
-METHOD_SD2GRAM = "sd2gram",
-METHOD_SDGED = "sdged",   
+METHOD_GED = "ged"
+METHOD_SD2GRAM = "sd2gram"
+METHOD_SDGED = "sdged"
 
 DICTIONARY_DIR = "dictionary/dict.txt"
 
@@ -44,7 +45,7 @@ def implement(input_dir, output_dir, measure, execution_length = 10):
 
     # ==================== MEASURE DISTANCE ====================
 
-    def measure_distance(term, dictionary_list):
+    def measure_distance(term, dictionary_list, measure):
         """
         Measure distance of a term
         """
@@ -52,17 +53,17 @@ def implement(input_dir, output_dir, measure, execution_length = 10):
         def is_oov(term, dictionary_list):
             return term not in dictionary_list
         
-        matching_distance = 100
+        matching_distance = measure.get_default_distance
         matching_string = []
 
         if not is_oov(term, dictionary_list):
-            matching_distance = 0
+            matching_distance = measure.get_iv_distance(term)
             matching_string = [term]
         else:
             for dict in dictionary_list:
-                distance = measure.get_distance(term, dict)
+                distance = measure.get_oov_distance(term, dict)
 
-                if distance < matching_distance:
+                if (measure.is_greatest_distance and (distance > matching_distance)) or (measure.is_least_distance and (distance < matching_distance)):
                     matching_distance = distance
                     matching_string = [str(dict)]
                 elif distance == matching_distance:
@@ -71,7 +72,7 @@ def implement(input_dir, output_dir, measure, execution_length = 10):
         return [matching_distance, matching_string]
 
     for i in range(len(term_list)):
-        [matching_distance, matching_string] = measure_distance(term_list[i], dict_list)
+        [matching_distance, matching_string] = measure_distance(term_list[i], dict_list, measure)
 
         print(i, ". The term: ", term_list[i])
         print("Global edit distance: ", matching_distance)
@@ -114,6 +115,7 @@ if __name__ == "__main__":
     elif method == METHOD_GED:
         # implement GED method
         print ("implement GED method")
+        measure = Ged()
     elif method == METHOD_SD2GRAM:
         # implement Soundex + 2GRAM method
         print ("implement Soundex + 2GRAM method")
