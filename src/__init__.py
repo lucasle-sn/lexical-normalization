@@ -1,0 +1,1 @@
+from .TwoGram import TwoGram
