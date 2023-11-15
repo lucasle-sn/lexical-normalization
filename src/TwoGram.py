@@ -8,10 +8,32 @@
 
 class TwoGram:
     def __init__(self):
+        self.default_distance = 100
+        self.greatest_distance = False
+        self.least_distance = True
         pass
 
 
-    def get_distance(self, rhs, lhs):
+    @property
+    def get_default_distance(self):
+        return self.default_distance
+
+
+    @property
+    def is_greatest_distance(self):
+        return self.greatest_distance
+
+
+    @property
+    def is_least_distance(self):
+        return self.least_distance
+    
+
+    def get_iv_distance(self, term):
+        return 0
+    
+
+    def get_oov_distance(self, rhs, lhs):
         """
         Measure distance between 2 strings
         """
